@@ -32,8 +32,8 @@ public class Teclado extends JPanel implements ActionListener {
     JPanel numeros;
     JButton b7, b8, b9, bd, b4, b5, b6, bm, b1, b2, b3, bs, b0, bp, bf, ba, bl, be;
     JButton bent, bxy, bmm, bnot, bcle, bsto, brcl, brdown, bsin, bcos, btan, bsum, binv, bsqrt, bsqr, bpot, blog;
-    static ArrayList<Integer> preX;
-    static BigDecimal a, x, y, z, w, lx;
+    static ArrayList<Character> preX;
+    static BigDecimal x, y, z, w, lx;
     static int Ndecimal;
     
     BigDecimal[] storage = new BigDecimal[100];
@@ -41,7 +41,8 @@ public class Teclado extends JPanel implements ActionListener {
     enum Modo {
         NORMAL,
         LARANJA,
-        DISPLAY
+        DISPLAY,
+        STORAGE
     }
     static Modo modo = Modo.NORMAL;  
 
@@ -224,15 +225,14 @@ public class Teclado extends JPanel implements ActionListener {
 
         // ================================================================
 
-        a = BigDecimal.valueOf(0);
         x = BigDecimal.valueOf(0);
         y = BigDecimal.valueOf(0);
         z = BigDecimal.valueOf(0);
         w = BigDecimal.valueOf(0);
         lx = BigDecimal.valueOf(0);
 
-        preX = new ArrayList<Integer>();
-        preX.add(1);
+        preX = new ArrayList<Character>();
+        preX.add('+');
         Ndecimal = 3;
 
         for(int i = 0; i < storage.length; i++){
@@ -303,138 +303,22 @@ public class Teclado extends JPanel implements ActionListener {
     }
 
     void aparecer() {
-        ArrayList<Integer> aparecerA = new ArrayList<Integer>();
+        String preBigDecimal = new String();
+        preBigDecimal = "";
         for (int i = 0; i < preX.size(); i++) {
-            aparecerA.add(preX.get(i));
+            preBigDecimal = preBigDecimal + preX.get(i);
         }
-        System.out.println(preX);
-        System.out.println(aparecerA);
-        a = BigDecimal.ZERO;
-        int E = 0;
-        while (aparecerA.size() > 1) {//resovle os números
-            if ((aparecerA.get(1) == 10) || (aparecerA.get(1) == 11)) {
-                break;
-            }
-            a = a.multiply(BigDecimal.TEN);
-            a = a.add(new BigDecimal(aparecerA.get(1))); 
-            aparecerA.remove(1);
+        if (preX.get(preX.size()-1) == '+' || preX.get(preX.size()-1) == '-'){
+            preBigDecimal = preBigDecimal + "0";
         }
-        if (aparecerA.size() > 1) {
-            if (aparecerA.get(1) == 11) {//resolve "."
-                aparecerA.remove(1);
-                int i;
-                for (i = 1; aparecerA.size() > 1; i++) {
-                    if ((aparecerA.get(1) == 10)) {
-                        break;
-                    }
-                    BigDecimal val1 = new BigDecimal(aparecerA.get(1));
-                    val1.setScale(16, RoundingMode.HALF_EVEN);
-                    BigDecimal val2 = new BigDecimal(10);
-                    val2.setScale(16, RoundingMode.HALF_EVEN);
-                    val2 = val2.pow(i);
-                    a = a.add(val1.divide(val2));
-                    aparecerA.remove(1);
-                }
-            }
+        if (preX.size() > 1 && preX.get(1) == '.'){
+            preBigDecimal = "0" + preBigDecimal;
         }
-        if (aparecerA.size() > 1) {
-            if (aparecerA.size() > 1) {
-                if (aparecerA.get(1) == 10) {//resolve "E"
-                    aparecerA.remove(1);
-                    while (aparecerA.size() > 2) {
-                        E = (E * 10) + aparecerA.get(2);
-                        aparecerA.remove(2);
-                    }
-                    BigDecimal val1 = BigDecimal.TEN;
-                    val1.setScale(16);
-    
-                    val1 = val1.pow(E);
-                    if(aparecerA.get(1) == 1){
-                        a = a.multiply(val1);
-                    }
-                    if(aparecerA.get(1) == -1){
-                        a = a.divide(val1);
-                    }
-                    aparecerA.remove(1);
-    
-                }
-            }
-        }
-        a = a.multiply(new BigDecimal(aparecerA.get(0)));
+        System.out.println(preBigDecimal);
+        x = new BigDecimal(preBigDecimal);
     }
     
 
-    void enter() {
-        if(a == x){
-            lx = x;
-            w = z;
-            z = y;
-            y = x;
-            x = a;
-            while(preX.size()>1){
-                preX.remove(1);
-            }
-            return;
-        }
-        a = BigDecimal.ZERO;
-        int E = 0;
-        while (preX.size() > 1) {//resolve os números
-            if ((preX.get(1) == 10) || (preX.get(1) == 11)) {
-                break;
-            }
-            a = a.multiply(BigDecimal.TEN);
-            a = a.add(new BigDecimal(preX.get(1))); 
-            preX.remove(1);
-        }
-        if (preX.size() > 1) {
-            if (preX.get(1) == 11) {//resolve "."
-                preX.remove(1);
-                int i;
-                for (i = 1; preX.size() > 1; i++) {
-                    if ((preX.get(1) == 10)) {
-                        break;
-                    }
-                    BigDecimal val1 = new BigDecimal(preX.get(1));
-                    val1.setScale(16, RoundingMode.HALF_EVEN);
-                    BigDecimal val2 = new BigDecimal(10);
-                    val2.setScale(16, RoundingMode.HALF_EVEN);
-                    val2 = val2.pow(i);
-                    a = a.add(val1.divide(val2));
-                    preX.remove(1);
-                }
-            }
-        }
-        if (preX.size() > 2) {
-            if (preX.size() > 1) {
-                if (preX.get(1) == 10) {//resolve "E"
-                    preX.remove(1);
-                    while (preX.size() > 2) {
-                        E = (E * 10) + preX.get(2);
-                        preX.remove(2);
-                    }
-                    BigDecimal val1 = BigDecimal.TEN;
-                    val1.setScale(16);
-    
-                    val1 = val1.pow(E);
-                    if(preX.get(1) == 1){
-                        a = a.multiply(val1);
-                    }
-                    if(preX.get(1) == -1){
-                        a = a.divide(val1);
-                    }
-                    preX.remove(1);
-    
-                }
-            }
-        }
-        a = a.multiply(new BigDecimal(preX.get(0)));
-        preX.set(0, 1);
-        lx = x;
-        w = z;
-        z = y;
-        y = x;
-        x = a;
-    }
 
     void xtoy() {
         BigDecimal t;
@@ -445,55 +329,55 @@ public class Teclado extends JPanel implements ActionListener {
     }
 
     void changesig() {
-        for (int i = 0; i < preX.size(); i++) {
-            if (preX.get(i) == 10) {
-                if (preX.get(i+1) == 1) {
-                    preX.set(i+1, -1);
-                } else {
-                    preX.set(i+1, 1);
-                }
+        if(preX.size() == 1){
+            x = x.multiply(new BigDecimal(-1));
+            return;
+        }
+        for (int i = (preX.size() - 1); i >= 0; i--) {
+            if(preX.get(i) == '+'){
+                preX.set(i, '-');
+                aparecer();
+                return;
+            }
+            if(preX.get(i) == '-'){
+                preX.set(i, '+');
+                aparecer();
                 return;
             }
         }
-            if (preX.get(0) == 1) {
-                preX.set(0, -1);
-            } else {
-                preX.set(0, 1);
-            } 
-        aparecer();
     }
 
     void point() {
         for (int i = 0; i < preX.size(); i++) {
-            if ((preX.get(i) == 11) || (preX.get(i) == 10)) {
+            if ((preX.get(i) == '.') || (preX.get(i) == 'E')) {
                 return;
             }
         }
-        preX.add(11);
+        preX.add('.');
     }
 
-    void notation() {
+    void notation() {//não funciona
         for (int i = 0; i < preX.size(); i++) {
-            if (preX.get(i) == 10) {
+            if (preX.get(i) == 'e') {
                 return;
             }
         }
-        if((a == BigDecimal.ZERO) || (preX.size() == 1)){
-            preX.add(1);
+        if(preX.size() == 1){
+            preX.add('1');
         }
-        preX.add(10);
-        preX.add(1);
+        preX.add('e');
+        preX.add('+');
     }
 
     void clean (){
         if (preX.size() > 1) {
-            if(((preX.get(preX.size() - 1)) == 1) && ((preX.get(preX.size() - 2)) == 10)){
+            if(((preX.get(preX.size() - 1)) == '+') && ((preX.get(preX.size() - 2)) == 'E')){
                 preX.remove((preX.size() - 1));
                 preX.remove((preX.size() - 1));
                 return;
             }
-            if(((preX.get(preX.size() - 1)) == -1) && ((preX.get(preX.size() - 2)) == 10)){
-                preX.set((preX.size() - 1), 1);
+            if(((preX.get(preX.size() - 1)) == '-') && ((preX.get(preX.size() - 2)) == 'E')){
+                preX.set((preX.size() - 1), '+');
                 return;
             }
             preX.remove((preX.size() - 1));
@@ -510,15 +394,15 @@ public class Teclado extends JPanel implements ActionListener {
         w = i;
     }
 
-    void storage(){
-        if((a.compareTo(new BigDecimal(0)) >= 0) && (a.compareTo(new BigDecimal(100)) < 0)){
-            storage[a.intValue()] = x;
-        }
-    }
     void recal(){
-        if((a.compareTo(new BigDecimal(0)) >= 0) && (a.compareTo(new BigDecimal(100)) < 0)){
+        if((x.intValue() >= 0) && (x.intValue() < 100)){
             lx = x;
-            x = storage[a.intValue()];
+            x = storage[x.intValue()];
+            preX.clear();
+            preX.add('+');
+            display();
+        }else{
+            Tela.X.setText("Invalid number");
         }
     }
 
@@ -556,7 +440,7 @@ public class Teclado extends JPanel implements ActionListener {
             display();
         }catch (Exception e){
             if(e.getMessage() == "Division by zero"){
-                Tela.A.setText("Cannot divide by 0");
+                Tela.X.setText("Cannot divide by 0");
             }else{
                 System.out.println(e.getMessage());
             }
@@ -571,7 +455,7 @@ public class Teclado extends JPanel implements ActionListener {
             display();
         }catch (Exception e){
             if(e.getMessage() == "Division by zero"){
-                Tela.A.setText("Cannot divide by 0");
+                Tela.X.setText("Cannot divide by 0");
             }else{
                 System.out.println(e.getMessage());
             }
@@ -585,7 +469,7 @@ public class Teclado extends JPanel implements ActionListener {
             display();
         }catch (Exception e){
             if(e.getMessage() == "Attempted square root of negative BigDecimal"){
-                Tela.A.setText("Compex value");
+                Tela.X.setText("Compex value");
             }else{
                 System.out.println(e.getMessage());
             }
@@ -730,62 +614,32 @@ public class Teclado extends JPanel implements ActionListener {
     }
     
 
-
+        BigDecimal GX = BigDecimal.ZERO;
+        BigDecimal GY = BigDecimal.ZERO;
+        BigDecimal GZ = BigDecimal.ZERO;
     public void actionPerformed(ActionEvent e) {
         switch(modo){
             case NORMAL:
                 if(e.getSource() == bl){
                     modo = Modo.LARANJA;
                 }
-                if (e.getSource() == b0) {
-                    preX.add(0);
-                    aparecer();
-                }
-                if (e.getSource() == b1) {
-                    preX.add(1);
-                    aparecer();
-                }
-                if (e.getSource() == b2) {
-                    preX.add(2);
-                    aparecer();
-                }
-                if (e.getSource() == b3) {
-                    preX.add(3);
-                    aparecer();
-                }
-                if (e.getSource() == b4) {
-                    preX.add(4);
-                    aparecer();
-                }
-                if (e.getSource() == b5) {
-                    preX.add(5);
-                    aparecer();
-                }
-                if (e.getSource() == b6) {
-                    preX.add(6);
-                    aparecer();
-                }
-                if (e.getSource() == b7) {
-                    preX.add(7);
-                    aparecer();
-                }
-                if (e.getSource() == b8) {
-                    preX.add(8);
-                    aparecer();
-                }
-                if (e.getSource() == b9) {
-                    preX.add(9);
-                    aparecer();
-                }
+                numwrite(e);
                 if (e.getSource() == bp) {
                     point();
                     aparecer();
                 }
                 if (e.getSource() == bent) {
-                    enter();
+                    lx = x;
+                    w = z;
+                    z = y;
+                    y = x;
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == bxy) {
                     xtoy();
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == bmm) {
                     changesig();
@@ -802,34 +656,56 @@ public class Teclado extends JPanel implements ActionListener {
                     RDown();
                 }
                 if (e.getSource() == bsto){
-                    storage();
+                    modo = Modo.STORAGE;
+                    GX = x;
+                    GY = y;
+                    y = x;
+                    x = BigDecimal.ZERO;
+                    preX.clear();
+                    preX.add('+');
+                    storageSet();
+                    return;
                 }
                 if (e.getSource() == brcl){
                     recal();
+                    break;
                 }
                 if (e.getSource() == bd){
                     divide();
-                    break;
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == bm){
                     multiply();
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == bs){
                     subtract();
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == ba){
                     add();
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == binv){
                     inverse();
+                    preX.clear();
+                    preX.add('+');
                     break;
                 }
                 if (e.getSource() == bsqrt){
                     sqrt();
+                    preX.clear();
+                    preX.add('+');
                     break;
                 }
                 if (e.getSource() == bsqr){
                     sqr();
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == bpot){
                 }
@@ -838,14 +714,20 @@ public class Teclado extends JPanel implements ActionListener {
                 if (e.getSource() == bsin){
                     lx = x;
                     x = sin(x);
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == bcos){
                     lx = x;
                     x = cos(x);
+                    preX.clear();
+                    preX.add('+');
                 }
                 if (e.getSource() == btan){
                     lx = x;
                     x = tan(x);
+                    preX.clear();
+                    preX.add('+');
                 }
                 
                 display();
@@ -859,40 +741,50 @@ public class Teclado extends JPanel implements ActionListener {
                 }
                 if (e.getSource() == bnot) {
                     modo = Modo.DISPLAY;
-                    a = BigDecimal.ZERO;
+                    x = BigDecimal.ZERO;
                     displaySet();
                     return;
                 }
                 if(e.getSource() == bxy){
                     lastX();
+                    preX.clear();
+                    preX.add('+');
                     modo = Modo.NORMAL;
                 }
                 if (e.getSource() == bsin){
                     lx = x;
                     x = arcsin(x);
-                    System.out.println(x);
+                    preX.clear();
+                    preX.add('+');
                     modo = Modo.NORMAL;
                 }
                 if (e.getSource() == bcos){
                     lx = x;
                     x = arccos(x);
+                    preX.clear();
+                    preX.add('+');
                     modo = Modo.NORMAL;
                 }
                 if (e.getSource() == btan){
                     lx = x;
                     x = arctan(x);
+                    preX.clear();
+                    preX.add('+');
                     modo = Modo.NORMAL;
                 }
                 if(e.getSource() == brdown){
                     lx = x;
                     x = new BigDecimal("3.14159265358979323846");
                     x = x.setScale(20, RoundingMode.HALF_EVEN);
+                    preX.clear();
+                    preX.add('+');
                     display();
                     modo = Modo.NORMAL;
                 }
                 display();
                 break;
             case DISPLAY:
+                numwrite(e);
                 if (e.getSource() == be) {
                     modo = Modo.NORMAL;
                     display();
@@ -900,69 +792,59 @@ public class Teclado extends JPanel implements ActionListener {
                 }
                 if (e.getSource() == bsum) {
                     display = Display.FIX;
-                    Tela.X.setText("Fix");
+                    Tela.Y.setText("Fix");
                 }
                 if (e.getSource() == binv) {
                     display = Display.SCI;
-                    Tela.X.setText("Scientific");
+                    Tela.Y.setText("Scientific");
                 }
                 if (e.getSource() == bsqrt) {
                     display = Display.ENG;
-                    Tela.X.setText("Engineer");
-                }
-                if (e.getSource() == b0) {
-                    preX.add(0);
-                    aparecer();
-                }
-                if (e.getSource() == b1) {
-                    preX.add(1);
-                    aparecer();
-                }
-                if (e.getSource() == b2) {
-                    preX.add(2);
-                    aparecer();
-                }
-                if (e.getSource() == b3) {
-                    preX.add(3);
-                    aparecer();
-                }
-                if (e.getSource() == b4) {
-                    preX.add(4);
-                    aparecer();
-                }
-                if (e.getSource() == b5) {
-                    preX.add(5);
-                    aparecer();
-                }
-                if (e.getSource() == b6) {
-                    preX.add(6);
-                    aparecer();
-                }
-                if (e.getSource() == b7) {
-                    preX.add(7);
-                    aparecer();
-                }
-                if (e.getSource() == b8) {
-                    preX.add(8);
-                    aparecer();
-                }
-                if (e.getSource() == b9) {
-                    preX.add(9);
-                    aparecer();
+                    Tela.Y.setText("Engineer");
                 }
                 if (e.getSource() == bcle) {
                     clean ();
                     aparecer();
                 }
                 if (e.getSource() == bent) {
-                    if((a.intValue() > 0) && (a.intValue() < 12)){
-                        Ndecimal = a.intValue();
+                    if((x.intValue() > 0) && (x.intValue() < 12)){
+                        Ndecimal = x.intValue();
                         modo = Modo.NORMAL;
                         display();
                         return;
                     }
                 }
                 displaySet();
+                break;
+            case STORAGE:
+                numwrite(e);
+                if (e.getSource() == be){
+                    x = GX;
+                    y = GY;
+                    aparecer();
+                    modo = Modo.NORMAL;
+                    display();
+                    return;
+                }
+                if (e.getSource() == bcle) {
+                    clean ();
+                    aparecer();
+                    storageSet();
+                }
+                if (e.getSource() == bent) {
+                    if((x.intValue() >= 0) && (x.intValue() < 100)){
+                        modo = Modo.NORMAL;
+                        storage[x.intValue()] = y;
+                        x = GX;
+                        y = GY;
+                        aparecer();
+                        modo = Modo.NORMAL;
+                        display();
+                        return;
+                    }
+                }
+                storageSet();
+                break;    
         }
         
 
@@ -972,28 +854,77 @@ public class Teclado extends JPanel implements ActionListener {
         System.out.println("z: "+ z);
         System.out.println("y: "+ y);
         System.out.println("x: "+ x);
-        System.out.println("a: "+ a);
         System.out.println("-------");
         
         
+    }
+
+    void numwrite(ActionEvent e){
+        if (e.getSource() == b0) {
+            preX.add('0');
+            aparecer();
+        }
+        if (e.getSource() == b1) {
+            preX.add('1');
+            aparecer();
+        }
+        if (e.getSource() == b2) {
+            preX.add('2');
+            aparecer();
+        }
+        if (e.getSource() == b3) {
+            preX.add('3');
+            aparecer();
+        }
+        if (e.getSource() == b4) {
+            preX.add('4');
+            aparecer();
+        }
+        if (e.getSource() == b5) {
+            preX.add('5');
+            aparecer();
+        }
+        if (e.getSource() == b6) {
+            preX.add('6');
+            aparecer();
+        }
+        if (e.getSource() == b7) {
+            preX.add('7');
+            aparecer();
+        }
+        if (e.getSource() == b8) {
+            preX.add('8');
+            aparecer();
+        }
+        if (e.getSource() == b9) {
+            preX.add('9');
+            aparecer();
+        }
+    }
+
+    void storageSet(){
+        display();
+        Tela.Z.setText("STORAGE");
+        Tela.Y.setText("X:" +  Tela.Y.getText().substring(2));
+        Tela.X.setText("I:" +  Tela.X.getText().substring(2));
     }
 
     void displaySet(){
         switch(display){
             case FIX:
                 Tela.writeFix();
-                Tela.X.setText("Fix");
+                Tela.Y.setText("Fix");
                 break;
             case SCI:
                 Tela.writeSci();
-                Tela.X.setText("Scientific");
+                Tela.Y.setText("Scientific");
                 break;
             case ENG:
                 Tela.writeEng();
-                Tela.X.setText("Engineer");
+                Tela.Y.setText("Engineer");
                 break;
         }
-        Tela.Y.setText("FIX|SCI|ENG");
+        Tela.Z.setText("FIX|SCI|ENG");
     }
 
     static void display(){
@@ -1009,5 +940,4 @@ public class Teclado extends JPanel implements ActionListener {
                 break;
         }
     }
-
 }
