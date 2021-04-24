@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 
 import java.util.ArrayList;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 
 import javax.swing.JPanel;
@@ -31,12 +32,27 @@ public class Teclado extends JPanel implements ActionListener {
     JPanel numeros;
     JButton b7, b8, b9, bd, b4, b5, b6, bm, b1, b2, b3, bs, b0, bp, bf, ba, bl, be;
     JButton bent, bxy, bmm, bnot, bcle, bsto, brcl, brdown, bsin, bcos, btan, bsum, binv, bsqrt, bsqr, bpot, blog;
-
     static ArrayList<Integer> preX;
-    static BigDecimal a, x, y, z, w;
+    static BigDecimal a, x, y, z, w, lx;
     static int Ndecimal;
-
+    
     BigDecimal[] storage = new BigDecimal[100];
+
+    enum Modo {
+        NORMAL,
+        LARANJA,
+        DISPLAY
+    }
+    static Modo modo = Modo.NORMAL;  
+
+    enum Display {
+        FIX,
+        SCI,
+        ENG
+    }
+    static Display display = Display.FIX;
+
+
 
     Teclado() {
         setLayout(new GridBagLayout());
@@ -213,7 +229,8 @@ public class Teclado extends JPanel implements ActionListener {
         y = BigDecimal.valueOf(0);
         z = BigDecimal.valueOf(0);
         w = BigDecimal.valueOf(0);
-        
+        lx = BigDecimal.valueOf(0);
+
         preX = new ArrayList<Integer>();
         preX.add(1);
         Ndecimal = 3;
@@ -311,9 +328,9 @@ public class Teclado extends JPanel implements ActionListener {
                         break;
                     }
                     BigDecimal val1 = new BigDecimal(aparecerA.get(1));
-                    val1.setScale(16, RoundingMode.FLOOR);
+                    val1.setScale(16, RoundingMode.HALF_EVEN);
                     BigDecimal val2 = new BigDecimal(10);
-                    val2.setScale(16, RoundingMode.FLOOR);
+                    val2.setScale(16, RoundingMode.HALF_EVEN);
                     val2 = val2.pow(i);
                     a = a.add(val1.divide(val2));
                     aparecerA.remove(1);
@@ -349,6 +366,7 @@ public class Teclado extends JPanel implements ActionListener {
 
     void enter() {
         if(a == x){
+            lx = x;
             w = z;
             z = y;
             y = x;
@@ -377,9 +395,9 @@ public class Teclado extends JPanel implements ActionListener {
                         break;
                     }
                     BigDecimal val1 = new BigDecimal(preX.get(1));
-                    val1.setScale(16, RoundingMode.FLOOR);
+                    val1.setScale(16, RoundingMode.HALF_EVEN);
                     BigDecimal val2 = new BigDecimal(10);
-                    val2.setScale(16, RoundingMode.FLOOR);
+                    val2.setScale(16, RoundingMode.HALF_EVEN);
                     val2 = val2.pow(i);
                     a = a.add(val1.divide(val2));
                     preX.remove(1);
@@ -411,6 +429,7 @@ public class Teclado extends JPanel implements ActionListener {
         }
         a = a.multiply(new BigDecimal(preX.get(0)));
         preX.set(0, 1);
+        lx = x;
         w = z;
         z = y;
         y = x;
@@ -419,6 +438,7 @@ public class Teclado extends JPanel implements ActionListener {
 
     void xtoy() {
         BigDecimal t;
+        lx = x;
         t = x;
         x = y;
         y = t;
@@ -483,6 +503,7 @@ public class Teclado extends JPanel implements ActionListener {
 
     void RDown(){
         BigDecimal i = x;
+        lx = x;
         x = y;
         y = z;
         z = w;
@@ -496,81 +517,454 @@ public class Teclado extends JPanel implements ActionListener {
     }
     void recal(){
         if((a.compareTo(new BigDecimal(0)) >= 0) && (a.compareTo(new BigDecimal(100)) < 0)){
+            lx = x;
             x = storage[a.intValue()];
         }
     }
 
+    void lastX(){
+        x = lx;
+    }
+
+    void add(){
+        lx = x;
+        x = x.add(y);
+        y = z;
+        z = w;
+    }
+
+    void subtract(){
+        lx = x;
+        x = y.subtract(x);
+        y = z;
+        z = w;
+    }
+
+    void multiply(){
+        lx = x;
+        x = x.multiply(y);
+        y = z;
+        z = w;
+    }
+
+    void divide(){
+        try{
+            lx = x;
+            x = y.divide(x);
+            y = z;
+            z = w;
+            display();
+        }catch (Exception e){
+            if(e.getMessage() == "Division by zero"){
+                Tela.A.setText("Cannot divide by 0");
+            }else{
+                System.out.println(e.getMessage());
+            }
+        }   
+    }
+
+    void inverse(){
+        try{
+            lx = x;
+            x = (BigDecimal.ONE).divide(x);
+            x = x.setScale(16, RoundingMode.HALF_EVEN);
+            display();
+        }catch (Exception e){
+            if(e.getMessage() == "Division by zero"){
+                Tela.A.setText("Cannot divide by 0");
+            }else{
+                System.out.println(e.getMessage());
+            }
+        }  
+    }
+
+    void sqrt(){
+        try{
+            lx = x;
+            x = x.sqrt(new MathContext(16));
+            display();
+        }catch (Exception e){
+            if(e.getMessage() == "Attempted square root of negative BigDecimal"){
+                Tela.A.setText("Compex value");
+            }else{
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    void sqr(){
+        lx = x;
+        x = x.pow(2);
+    }
+
+    BigDecimal sin(BigDecimal tx){
+        BigDecimal sin = BigDecimal.ZERO;
+        sin = sin.setScale(16, RoundingMode.HALF_EVEN);
+
+
+        for(int i = 1; i<=30; i = i+2){
+            BigDecimal pow = BigDecimal.ZERO;
+            pow = pow.setScale(16, RoundingMode.HALF_EVEN);
+
+            BigDecimal fac = BigDecimal.ONE;
+            fac = fac.setScale(16, RoundingMode.HALF_EVEN);
+
+            BigDecimal sig = BigDecimal.ZERO;
+            sig = sig.setScale(16, RoundingMode.HALF_EVEN);
+
+            BigDecimal val = BigDecimal.ZERO;
+            val = val.setScale(16, RoundingMode.HALF_EVEN);
+
+            pow = tx.pow(i);
+            sig = (new BigDecimal(-1)).pow((i-1)/2);
+            
+            for(int f = 1; f<=i; f++){
+                fac = fac.multiply(new BigDecimal(f));
+            }
+
+            val = sig.multiply(pow);
+            val = val.setScale(16, RoundingMode.HALF_EVEN);
+            val = val.divide(fac, RoundingMode.HALF_EVEN);
+            sin = sin.add(val);
+        }
+        return sin;
+    }
+
+    BigDecimal cos(BigDecimal tx){
+        BigDecimal cos = BigDecimal.ONE;
+        cos = cos.setScale(16, RoundingMode.HALF_EVEN);
+
+
+        for(int i = 2; i<=30; i = i+2){
+            BigDecimal pow = BigDecimal.ZERO;
+            pow = pow.setScale(16, RoundingMode.HALF_EVEN);
+
+            BigDecimal fac = BigDecimal.ONE;
+            fac = fac.setScale(16, RoundingMode.HALF_EVEN);
+
+            BigDecimal sig = BigDecimal.ZERO;
+            sig = sig.setScale(16, RoundingMode.HALF_EVEN);
+
+            BigDecimal val = BigDecimal.ZERO;
+            val = val.setScale(16, RoundingMode.HALF_EVEN);
+
+            pow = tx.pow(i);
+            sig = (new BigDecimal(-1)).pow((i)/2);
+            
+            for(int f = 1; f<=i; f++){
+                fac = fac.multiply(new BigDecimal(f));
+            }
+            
+            val = sig.multiply(pow);
+            val = val.setScale(16, RoundingMode.HALF_EVEN);
+            val = val.divide(fac, RoundingMode.HALF_EVEN);
+            cos = cos.add(val);
+        }
+        return cos;
+
+    }
+    
+    BigDecimal tan(BigDecimal tx){
+        BigDecimal cos = BigDecimal.ZERO;
+        cos = cos.setScale(16, RoundingMode.HALF_EVEN);
+        cos = cos(tx);
+
+        BigDecimal sin = BigDecimal.ZERO;
+        sin = sin.setScale(16, RoundingMode.HALF_EVEN);
+        sin = sin(tx);
+
+        BigDecimal tan = BigDecimal.ZERO;
+        tan = tan.setScale(16, RoundingMode.HALF_EVEN);
+        tan = sin.divide(cos, RoundingMode.HALF_EVEN);
+        return tan;
+    }
+
+    BigDecimal arcsin(BigDecimal tx){
+        BigDecimal arcsin = BigDecimal.ZERO;
+        arcsin = arcsin.setScale(16, RoundingMode.HALF_EVEN);
+
+        BigDecimal x1 = new BigDecimal("3.14159265358979323846");
+        x1 = x1.divide(new BigDecimal(4), RoundingMode.HALF_EVEN);
+        x1 = x1.setScale(16, RoundingMode.HALF_EVEN);
+
+        //f(x1) = sin(x1) - x
+        //f'(x1) = cos(x1)
+        for(int i = 1 ; i<=30; i++){
+            BigDecimal val1 = sin(x1).subtract(tx);
+            BigDecimal val2 = cos(x1);
+            x1 = x1.subtract(val1.divide((val2), RoundingMode.HALF_EVEN));
+            System.out.println(x1);
+
+        }
+        return x1;
+    }
+
+    BigDecimal arccos(BigDecimal tx){
+        BigDecimal arcsin = arcsin(tx);
+        BigDecimal arccos = new BigDecimal("3.14159265358979323846");
+        arccos = arccos.divide(new BigDecimal(2), RoundingMode.HALF_EVEN);
+        arccos = arcsin.subtract(arccos);
+        return arccos;
+    }
+    
+    BigDecimal arctan(BigDecimal tx){
+        BigDecimal arctan = BigDecimal.ZERO;
+        arctan = arctan.setScale(16, RoundingMode.HALF_EVEN);
+
+        BigDecimal x1 = new BigDecimal("3.14159265358979323846");
+        x1 = x1.divide(new BigDecimal(4), RoundingMode.HALF_EVEN);
+        x1 = x1.setScale(16, RoundingMode.HALF_EVEN);
+
+        //f(x1) = tan(x1) - x
+        //f'(x1) = sec^2(x) = 1/cos^2(x) = 2/(cos(2x) + 1)
+        for(int i = 1 ; i<=30; i++){        
+            BigDecimal val1 = tan(x1).subtract(tx);
+            BigDecimal val2 = cos(x1.multiply(new BigDecimal(2)));
+            val2 = val2.add(BigDecimal.ONE);
+            val2 = new BigDecimal(2).divide(val2, RoundingMode.HALF_EVEN);
+            x1 = x1.subtract(val1.divide((val2), RoundingMode.HALF_EVEN));
+            System.out.println(x1);
+
+        }
+        return x1;
+    }
+    
+
+
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == b0) {
-            preX.add(0);
-            aparecer();
+        switch(modo){
+            case NORMAL:
+                if(e.getSource() == bl){
+                    modo = Modo.LARANJA;
+                }
+                if (e.getSource() == b0) {
+                    preX.add(0);
+                    aparecer();
+                }
+                if (e.getSource() == b1) {
+                    preX.add(1);
+                    aparecer();
+                }
+                if (e.getSource() == b2) {
+                    preX.add(2);
+                    aparecer();
+                }
+                if (e.getSource() == b3) {
+                    preX.add(3);
+                    aparecer();
+                }
+                if (e.getSource() == b4) {
+                    preX.add(4);
+                    aparecer();
+                }
+                if (e.getSource() == b5) {
+                    preX.add(5);
+                    aparecer();
+                }
+                if (e.getSource() == b6) {
+                    preX.add(6);
+                    aparecer();
+                }
+                if (e.getSource() == b7) {
+                    preX.add(7);
+                    aparecer();
+                }
+                if (e.getSource() == b8) {
+                    preX.add(8);
+                    aparecer();
+                }
+                if (e.getSource() == b9) {
+                    preX.add(9);
+                    aparecer();
+                }
+                if (e.getSource() == bp) {
+                    point();
+                    aparecer();
+                }
+                if (e.getSource() == bent) {
+                    enter();
+                }
+                if (e.getSource() == bxy) {
+                    xtoy();
+                }
+                if (e.getSource() == bmm) {
+                    changesig();
+                }
+                if (e.getSource() == bnot) {
+                    notation();
+                    aparecer();
+                }
+                if (e.getSource() == bcle) {
+                    clean ();
+                    aparecer();
+                }
+                if (e.getSource() == brdown){
+                    RDown();
+                }
+                if (e.getSource() == bsto){
+                    storage();
+                }
+                if (e.getSource() == brcl){
+                    recal();
+                }
+                if (e.getSource() == bd){
+                    divide();
+                    break;
+                }
+                if (e.getSource() == bm){
+                    multiply();
+                }
+                if (e.getSource() == bs){
+                    subtract();
+                }
+                if (e.getSource() == ba){
+                    add();
+                }
+                if (e.getSource() == binv){
+                    inverse();
+                    break;
+                }
+                if (e.getSource() == bsqrt){
+                    sqrt();
+                    break;
+                }
+                if (e.getSource() == bsqr){
+                    sqr();
+                }
+                if (e.getSource() == bpot){
+                }
+                if (e.getSource() == blog){
+                }
+                if (e.getSource() == bsin){
+                    lx = x;
+                    x = sin(x);
+                }
+                if (e.getSource() == bcos){
+                    lx = x;
+                    x = cos(x);
+                }
+                if (e.getSource() == btan){
+                    lx = x;
+                    x = tan(x);
+                }
+                
+                display();
+                break;
+            case LARANJA:
+                if(e.getSource() == bl){
+                    modo = Modo.NORMAL;
+                }
+                if(e.getSource() == be){
+                    System.exit(0);
+                }
+                if (e.getSource() == bnot) {
+                    modo = Modo.DISPLAY;
+                    a = BigDecimal.ZERO;
+                    displaySet();
+                    return;
+                }
+                if(e.getSource() == bxy){
+                    lastX();
+                    modo = Modo.NORMAL;
+                }
+                if (e.getSource() == bsin){
+                    lx = x;
+                    x = arcsin(x);
+                    System.out.println(x);
+                    modo = Modo.NORMAL;
+                }
+                if (e.getSource() == bcos){
+                    lx = x;
+                    x = arccos(x);
+                    modo = Modo.NORMAL;
+                }
+                if (e.getSource() == btan){
+                    lx = x;
+                    x = arctan(x);
+                    modo = Modo.NORMAL;
+                }
+                if(e.getSource() == brdown){
+                    lx = x;
+                    x = new BigDecimal("3.14159265358979323846");
+                    x = x.setScale(20, RoundingMode.HALF_EVEN);
+                    display();
+                    modo = Modo.NORMAL;
+                }
+                display();
+                break;
+            case DISPLAY:
+                if (e.getSource() == be) {
+                    modo = Modo.NORMAL;
+                    display();
+                    break;
+                }
+                if (e.getSource() == bsum) {
+                    display = Display.FIX;
+                    Tela.X.setText("Fix");
+                }
+                if (e.getSource() == binv) {
+                    display = Display.SCI;
+                    Tela.X.setText("Scientific");
+                }
+                if (e.getSource() == bsqrt) {
+                    display = Display.ENG;
+                    Tela.X.setText("Engineer");
+                }
+                if (e.getSource() == b0) {
+                    preX.add(0);
+                    aparecer();
+                }
+                if (e.getSource() == b1) {
+                    preX.add(1);
+                    aparecer();
+                }
+                if (e.getSource() == b2) {
+                    preX.add(2);
+                    aparecer();
+                }
+                if (e.getSource() == b3) {
+                    preX.add(3);
+                    aparecer();
+                }
+                if (e.getSource() == b4) {
+                    preX.add(4);
+                    aparecer();
+                }
+                if (e.getSource() == b5) {
+                    preX.add(5);
+                    aparecer();
+                }
+                if (e.getSource() == b6) {
+                    preX.add(6);
+                    aparecer();
+                }
+                if (e.getSource() == b7) {
+                    preX.add(7);
+                    aparecer();
+                }
+                if (e.getSource() == b8) {
+                    preX.add(8);
+                    aparecer();
+                }
+                if (e.getSource() == b9) {
+                    preX.add(9);
+                    aparecer();
+                }
+                if (e.getSource() == bcle) {
+                    clean ();
+                    aparecer();
+                }
+                if (e.getSource() == bent) {
+                    if((a.intValue() > 0) && (a.intValue() < 12)){
+                        Ndecimal = a.intValue();
+                        modo = Modo.NORMAL;
+                        display();
+                        return;
+                    }
+                }
+                displaySet();
         }
-        if (e.getSource() == b1) {
-            preX.add(1);
-            aparecer();
-        }
-        if (e.getSource() == b2) {
-            preX.add(2);
-            aparecer();
-        }
-        if (e.getSource() == b3) {
-            preX.add(3);
-            aparecer();
-        }
-        if (e.getSource() == b4) {
-            preX.add(4);
-            aparecer();
-        }
-        if (e.getSource() == b5) {
-            preX.add(5);
-            aparecer();
-        }
-        if (e.getSource() == b6) {
-            preX.add(6);
-            aparecer();
-        }
-        if (e.getSource() == b7) {
-            preX.add(7);
-            aparecer();
-        }
-        if (e.getSource() == b8) {
-            preX.add(8);
-            aparecer();
-        }
-        if (e.getSource() == b9) {
-            preX.add(9);
-            aparecer();
-        }
-        if (e.getSource() == bp) {
-            point();
-            aparecer();
-        }
-        if (e.getSource() == bent) {
-            enter();
-        }
-        if (e.getSource() == bxy) {
-            xtoy();
-        }
-        if (e.getSource() == bmm) {
-            changesig();
-        }
-        if (e.getSource() == bnot) {
-            notation();
-            aparecer();
-        }
-        if (e.getSource() == bcle) {
-            clean ();
-            aparecer();
-        }
-        if (e.getSource() == brdown){
-            RDown();
-        }
-        if( e.getSource() == bsto){
-            storage();
-        }
-        if( e.getSource() == brcl){
-            recal();
-        }
+        
 
         System.out.println("PreX: " + preX);
         System.out.println("-------");
@@ -581,8 +975,39 @@ public class Teclado extends JPanel implements ActionListener {
         System.out.println("a: "+ a);
         System.out.println("-------");
         
-        Tela.writeEng();
+        
     }
 
+    void displaySet(){
+        switch(display){
+            case FIX:
+                Tela.writeFix();
+                Tela.X.setText("Fix");
+                break;
+            case SCI:
+                Tela.writeSci();
+                Tela.X.setText("Scientific");
+                break;
+            case ENG:
+                Tela.writeEng();
+                Tela.X.setText("Engineer");
+                break;
+        }
+        Tela.Y.setText("FIX|SCI|ENG");
+    }
+
+    static void display(){
+        switch(display){
+            case FIX:
+                Tela.writeFix();
+                break;
+            case SCI:
+                Tela.writeSci();
+                break;
+            case ENG:
+                Tela.writeEng();
+                break;
+        }
+    }
 
 }

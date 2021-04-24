@@ -2,7 +2,6 @@ import java.awt.Color;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 
-import java.awt.Insets;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -24,8 +23,9 @@ public class Tela extends JPanel  {
     Color cinza = new Color(24, 27, 31);
     Color cinzaClaro = new Color(53, 55, 61);
     Color Verde = new Color(55, 112, 55);
-    static JLabel Y,X,A;
-    
+    Color laranja = new Color(199, 92, 16);
+    static JLabel Y,X,A, S, S2, S3;
+
     Tela(){
         setBorder(exterior);
         setBackground(cinza);
@@ -64,34 +64,44 @@ public class Tela extends JPanel  {
         telaOut.add(telaIn, cG);
 
         A = new JLabel();
-        A.setPreferredSize(new Dimension(240, 20));
+        A.setPreferredSize(new Dimension(220, 20));
         A.setHorizontalAlignment(JLabel.LEFT);
         A.setVerticalAlignment(JLabel.TOP);
         A.setFont(texto);
-        A.setText("A: 0");
         cG.gridx = 0;
         cG.gridy = 2;
         telaIn.add(A, cG);
 
         X = new JLabel();
-        X.setPreferredSize(new Dimension(240, 20));
+        X.setPreferredSize(new Dimension(220, 20));
         X.setHorizontalAlignment(JLabel.LEFT);
         X.setVerticalAlignment(JLabel.TOP);
         X.setFont(texto);
-        X.setText("X: 0");
         cG.gridx = 0;
         cG.gridy = 1;
         telaIn.add(X, cG);
 
         Y = new JLabel();
-        Y.setPreferredSize(new Dimension(240, 20));
+        Y.setPreferredSize(new Dimension(220, 20));
         Y.setHorizontalAlignment(JLabel.LEFT);
         Y.setVerticalAlignment(JLabel.TOP);
         Y.setFont(texto);
-        Y.setText("Y: 0");
         cG.gridx = 0;
         cG.gridy = 0;
         telaIn.add(Y, cG);
+
+        S = new JLabel();
+        S.setPreferredSize(new Dimension(20, 20));
+        S.setHorizontalAlignment(JLabel.CENTER);
+        S.setVerticalAlignment(JLabel.BOTTOM);
+        S.setFont(texto);
+        S.setForeground(laranja);
+        cG.gridx = 1;
+        cG.gridy = 2;
+        telaIn.add(S, cG);
+
+        Teclado.display();
+
     }
 
     public static void writeFix(){
@@ -101,10 +111,10 @@ public class Tela extends JPanel  {
         SY = Teclado.y;
         if(Teclado.y.precision() > 12){
             SY = SY.movePointLeft((SY.precision() - SY.scale())-1);//move o ponto para ficar em notação cinetífica
-            SY = SY.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+            SY = SY.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
             Y.setText("Y: " + SY + "E" + ((Teclado.y.precision() - Teclado.y.scale())-1));
         }else{
-            SY = SY.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);
+            SY = SY.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);
             Y.setText("Y: " + SY);
         }
 
@@ -112,22 +122,22 @@ public class Tela extends JPanel  {
         SX = Teclado.x;
         if(Teclado.x.precision() > 12){
             SX = SX.movePointLeft((SX.precision() - SX.scale())-1);//move o ponto para ficar em notação cinetífica
-            SX = SX.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+            SX = SX.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
             X.setText("X: " + SX + "E" + ((Teclado.x.precision() - Teclado.x.scale())-1));
         }else{
-            SX = SX.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);
+            SX = SX.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);
             X.setText("X: " + SX);
         }
 
-        if(Teclado.preX.size() == 1){
+        if((Teclado.preX.size() == 1) && (Teclado.preX.get(0) == 1)){
             BigDecimal SA;
             SA = Teclado.a;
             if(Teclado.a.precision() > 12){
                 SA = SA.movePointLeft((SA.precision() - SA.scale())-1);//move o ponto para ficar em notação cinetífica
-                SA = SA.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+                SA = SA.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
                 A.setText("A: " + SA + "E" + ((Teclado.a.precision() - Teclado.a.scale())-1));
             }else{
-                SA = SA.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);
+                SA = SA.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);
                 A.setText("A: " + SA);
             }
         }else{//escreve os símbos ao digitar
@@ -136,26 +146,44 @@ public class Tela extends JPanel  {
                 escrita.add(Teclado.preX.get(i));
             }
             if(escrita.get(0) == -1){
-                aWrite = "-1";
+                aWrite = "-";
             }
             if(escrita.get(0) == 1){
                 aWrite = "";
             }
             escrita.remove(0);
             while(escrita.size() > 0){
-                if(escrita.get(0) == 11){
-                    aWrite = aWrite + ".";
+                switch(escrita.get(0)){
+                    case 11:
+                        aWrite = aWrite + ".";
+                        escrita.remove(0);
+                        break;
+
+                    case 10:
+                        aWrite = aWrite + "E";
+                        escrita.remove(0);
+                        if(escrita.get(0) == -1){
+                            aWrite = aWrite + "-";
+                        }
+                        if(escrita.get(0) == 1){
+                            aWrite = aWrite + "";
+                        }
+                        escrita.remove(0);
+                        break;
+                        
+                    default:
+                        aWrite = aWrite + escrita.get(0);
+                        escrita.remove(0);
+                        break;
                 }
-                if(escrita.get(0) == 10){
-                    aWrite = aWrite + "E";
-                }
-                if((escrita.get(0) != 11) && (escrita.get(0) != 10)){
-                    aWrite = aWrite + escrita.get(0);
-                }
-                escrita.remove(0);
             }
             System.out.println("esrita: " + aWrite);
             A.setText("A: " + aWrite);
+        }
+        if(Teclado.modo == Teclado.Modo.LARANJA){
+            S.setText("Λ");
+        }else{
+            S.setText("");
         }
     }
     public static void writeSci(){
@@ -164,20 +192,20 @@ public class Tela extends JPanel  {
         BigDecimal SY;
         SY = Teclado.y;
         SY = SY.movePointLeft((SY.precision() - SY.scale())-1);//move o ponto para ficar em notação cinetífica
-        SY = SY.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+        SY = SY.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
         Y.setText("Y: " + SY + "E" + ((Teclado.y.precision() - Teclado.y.scale())-1));
 
         BigDecimal SX;
         SX = Teclado.x;
         SX = SX.movePointLeft((SX.precision() - SX.scale())-1);//move o ponto para ficar em notação cinetífica
-        SX = SX.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+        SX = SX.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
         X.setText("X: " + SX + "E" + ((Teclado.x.precision() - Teclado.x.scale())-1));
 
-        if(Teclado.preX.size() == 1){
+        if((Teclado.preX.size() == 1) && (Teclado.preX.get(0) == 1)){
             BigDecimal SA;
             SA = Teclado.a;
             SA = SA.movePointLeft((SA.precision() - SA.scale())-1);//move o ponto para ficar em notação cinetífica
-            SA = SA.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+            SA = SA.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
             A.setText("A: " + SA + "E" + ((Teclado.a.precision() - Teclado.a.scale())-1));
         }else{//escreve os símbos ao digitar
             ArrayList<Integer> escrita = new ArrayList<Integer>();
@@ -209,16 +237,20 @@ public class Tela extends JPanel  {
                         }
                         escrita.remove(0);
                         break;
-
+                        
                     default:
                         aWrite = aWrite + escrita.get(0);
                         escrita.remove(0);
                         break;
-
                 }
             }
             System.out.println("esrita: " + aWrite);
             A.setText("A: " + aWrite);
+        }
+        if(Teclado.modo == Teclado.Modo.LARANJA){
+            S.setText("Λ");
+        }else{
+            S.setText("");
         }
     }
 
@@ -241,7 +273,7 @@ public class Tela extends JPanel  {
             SY = SY.movePointRight(YE%3);
             YE = YE - (YE%3);
         }
-        SY = SY.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+        SY = SY.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
         Y.setText("Y: " + SY + "E" + YE);
         
 
@@ -261,10 +293,10 @@ public class Tela extends JPanel  {
             SX = SX.movePointRight(XE%3);
             XE = XE - (XE%3);
         }
-        SX = SX.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+        SX = SX.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
         X.setText("X: " + SX + "E" + XE);
 
-        if((Teclado.preX.size() == 1) && Teclado.preX.get(0) == 1){
+        if((Teclado.preX.size() == 1) && (Teclado.preX.get(0) == 1)){
             BigDecimal SA;
             SA = Teclado.a;
             int AE = ((Teclado.a.precision() - Teclado.a.scale())-1);
@@ -281,7 +313,7 @@ public class Tela extends JPanel  {
                 SA = SA.movePointRight(AE%3);
                 AE = AE - (AE%3);
             }
-            SA = SA.setScale(Teclado.Ndecimal, RoundingMode.FLOOR);// determina a quantidade de dígitos depois da vírgula
+            SA = SA.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
             A.setText("A: " + SA + "E" + AE);
         }else{//escreve os símbos ao digitar
             ArrayList<Integer> escrita = new ArrayList<Integer>();
@@ -318,12 +350,15 @@ public class Tela extends JPanel  {
                         aWrite = aWrite + escrita.get(0);
                         escrita.remove(0);
                         break;
-
                 }
             }
             System.out.println("esrita: " + aWrite);
             A.setText("A: " + aWrite);
         }
-    }
-    
+        if(Teclado.modo == Teclado.Modo.LARANJA){
+            S.setText("Λ");
+        }else{
+            S.setText("");
+        }
+    } 
 }   
