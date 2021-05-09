@@ -13,7 +13,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 
 
-@SuppressWarnings("serial")
+
 public class Tela extends JPanel  {
     Border exterior = BorderFactory.createCompoundBorder(BorderFactory.createRaisedBevelBorder(), BorderFactory.createRaisedBevelBorder());
     Border borderRaised = BorderFactory.createRaisedBevelBorder();
@@ -25,7 +25,7 @@ public class Tela extends JPanel  {
     Color laranja = new Color(199, 92, 16);
     static JLabel X,Y,Z, S, S2, S3;
 
-    Tela(){
+    public Tela(){ 
         setBorder(exterior);
         setBackground(cinza);
         setLayout(new GridBagLayout());
@@ -106,7 +106,7 @@ public class Tela extends JPanel  {
     public static void writeFix(){
         BigDecimal SZ;
         SZ = Teclado.z;
-        if(Math.abs(Teclado.y.scale()) + Math.abs(Teclado.y.precision()) + Teclado.Ndecimal > 16){
+        if((((Teclado.z.scale()*-1) + Teclado.Ndecimal) > 15)||((Teclado.z.scale()) > Teclado.Ndecimal)){
             SZ = SZ.movePointLeft((SZ.precision() - SZ.scale())-1);//move o ponto para ficar em notação cinetífica
             SZ = SZ.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
             Z.setText("Z: " + SZ + "E" + ((Teclado.z.precision() - Teclado.z.scale())-1));
@@ -117,7 +117,7 @@ public class Tela extends JPanel  {
 
         BigDecimal SY;
         SY = Teclado.y;
-        if(Math.abs(Teclado.y.scale()) + Math.abs(Teclado.y.precision()) + Teclado.Ndecimal > 16){
+        if((((Teclado.y.scale()*-1) + Teclado.Ndecimal) > 15)||((Teclado.y.scale()) > Teclado.Ndecimal)){
             SY = SY.movePointLeft((SY.precision() - SY.scale())-1);//move o ponto para ficar em notação cinetífica
             SY = SY.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
             Y.setText("Y: " + SY + "E" + ((Teclado.y.precision() - Teclado.y.scale())-1));
@@ -129,7 +129,10 @@ public class Tela extends JPanel  {
         if((Teclado.preX.size() == 1)){
             BigDecimal SX;
             SX = Teclado.x;
-            if(Math.abs(Teclado.y.scale()) + Math.abs(Teclado.y.precision()) + Teclado.Ndecimal > 16){
+            while(SX.compareTo(SX.setScale(SX.scale()-1)) == 0){
+                SX = SX.setScale(SX.scale()-1);
+            }
+            if((((Teclado.x.scale()*-1) + Teclado.Ndecimal) > 15)||((Teclado.x.scale()) > Teclado.Ndecimal)){
                 SX = SX.movePointLeft((SX.precision() - SX.scale())-1);//move o ponto para ficar em notação cinetífica
                 SX = SX.setScale(Teclado.Ndecimal, RoundingMode.HALF_EVEN);// determina a quantidade de dígitos depois da vírgula
                 X.setText("X: " + SX + "E" + ((Teclado.x.precision() - Teclado.x.scale())-1));
@@ -243,7 +246,7 @@ public class Tela extends JPanel  {
             S.setText("");
         }
     } 
-    static void stringToX(){
+    static void stringToX(){ //apenas escre s dígitos, sem criar um valor numérico 
         String xWrite = new String();
         xWrite = "";
         for (int i = 0; i < Teclado.preX.size(); i++) {
